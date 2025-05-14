@@ -184,12 +184,15 @@ def get_emotion_label(pred):
 
 def predict_emotion(model, audio_tensor):
     """
-    Run inference on the preprocessed audio features and return the predicted emotion.
+    Run inference and return probabilities for all emotions.
     """
     with torch.no_grad():
         output = model(audio_tensor)
-        pred_index = torch.argmax(output, dim=1).item()
-    return get_emotion_label(pred_index)
+        probabilities = F.softmax(output, dim=1).numpy().flatten()
+    
+    emotions = ['Angry', 'Happy', 'Neutral', 'Sad', 'Fearful', 'Disgust', 'Surprised']
+    emotion_probs = {emotion: float(prob) for emotion, prob in zip(emotions, probabilities)}
+    return emotion_probs
 
 
 ####################################
@@ -233,7 +236,9 @@ def main():
             recorded_bytes = audio
             audio_tensor = preprocess_audio_features(recorded_bytes)
             if audio_tensor is not None:
-                emotion = predict_emotion(model, audio_tensor)
+                emotion_probs = predict_emotion(model, audio_tensor)
+
+                # Show progress bar
                 progress_text = "Operation in progress. Please wait."
                 bar = st.progress(0, text=progress_text)
                 for percent_complete in range(100):
@@ -241,8 +246,15 @@ def main():
                     bar.progress(percent_complete + 1, text=progress_text)
                 time.sleep(1)
                 bar.empty()
+                
+                # Show results
+                predicted_emotion = max(emotion_probs, key=emotion_probs.get)
+                st.success(f"Predicted Emotion: **{predicted_emotion}**")
+                
+                # Display emotion probabilities as a bar chart
+                st.subheader("Emotion Probabilities")
+                st.bar_chart(emotion_probs)
 
-                st.success(f"Predicted Emotion: **{emotion}**")
 
 
 if __name__ == "__main__":
