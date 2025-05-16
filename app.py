@@ -176,7 +176,7 @@ def get_emotion_label(pred):
     Map prediction index to an emotion label.
     Modify these labels as per your training.
     """
-    emotions = ['Angry', 'Happy', 'Fearful', 'Sad', 'Neutral', 'Disgust', 'Surprised']
+    emotions = ['Angry', 'Disgust', 'Fearful', 'Happy', 'Neutral', 'Sad', 'Surprised']
     if 0 <= pred < len(emotions):
         return emotions[pred]
     return "Unknown"
